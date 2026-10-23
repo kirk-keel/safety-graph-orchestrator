@@ -1,12 +1,24 @@
 [project]
 name = "safety-graph-orchestrator"
 version = "0.1.0"
-description = "Add your description here"
+description = "Stateful Multi-Agent Safety Workflow Orchestrator (LangGraph + Ollama + ChromaDB)"
 readme = "README.md"
+license = { text = "Apache-2.0" }
 authors = [
     { name = "Kirk Keel", email = "kirk.keel@mail.com" }
 ]
-requires-python = ">=3.14"
+requires-python = ">=3.12"
+keywords = [
+    "langgraph",
+    "multi-agent",
+    "safety-management-systems",
+    "osha-compliance",
+    "api-rp-54",
+    "witsml",
+    "chromadb",
+    "ollama",
+    "root-cause-analysis"
+]
 dependencies = [
     "chromadb>=1.5.9",
     "fastapi>=0.161.1",
