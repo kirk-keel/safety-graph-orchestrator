@@ -14,6 +14,7 @@ RUN uv sync --frozen --no-install-project
 # Copy project source and install project
 COPY src/ src/
 COPY data/ data/
+COPY configs/ configs/
 COPY README.md ./
 RUN uv sync --frozen
 
@@ -29,6 +30,7 @@ RUN groupadd -r appgroup && useradd -r -g appgroup -d /app -s /sbin/nologin appu
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/src /app/src
 COPY --from=builder /app/data /app/data
+COPY --from=builder /app/configs /app/configs
 COPY --from=builder /app/pyproject.toml /app/pyproject.toml
 COPY --from=builder /app/README.md /app/README.md
 

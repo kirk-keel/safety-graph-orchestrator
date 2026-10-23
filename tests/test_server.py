@@ -36,3 +36,26 @@ def test_server_portal_index_html():
     assert response.status_code == 200
     assert "Safety Graph Orchestrator" in response.text
     assert "Multi-Agent Safety Workflow" in response.text
+
+
+def test_server_threads_endpoint():
+    response = client.get("/api/v1/threads")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+
+
+def test_server_stream_endpoint():
+    response = client.post("/api/v1/stream", json={"rig_id": "TEST-RIG-01", "steps": 5, "inject_kick": False})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["frames_processed"] == 5
+    assert data["anomaly_triggered"] is False
+
+
+def test_server_stream_kick_detection():
+    response = client.post("/api/v1/stream", json={"rig_id": "TEST-RIG-KICK", "steps": 10, "inject_kick": True})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["anomaly_triggered"] is True
+    assert data["anomaly"] is not None
+    assert "anomaly_type" in data["anomaly"]

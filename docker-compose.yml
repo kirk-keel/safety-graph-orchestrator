@@ -6,6 +6,9 @@ services:
     container_name: safety-graph-orchestrator
     ports:
       - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
     environment:
       - SAFETY_GRAPH_OLLAMA_BASE_URL=http://ollama:11434
       - SAFETY_GRAPH_OLLAMA_MODEL=llama3.2:latest

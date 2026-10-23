@@ -1,15 +1,16 @@
 # Safety Graph Orchestrator 🛡️⚡
 
-[![CI / Test Suite](https://img.shields.io/badge/pytest-45%20passed-brightgreen.svg)](#testing)
+[![CI / Test Suite](https://img.shields.io/badge/pytest-59%20passed-brightgreen.svg)](#testing)
 [![GitHub Actions CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF.svg?logo=githubactions&logoColor=white)](#continuous-integration-cicd)
 [![Docker](https://img.shields.io/badge/Docker-Ready%20%7C%20Compose-2496ED.svg?logo=docker&logoColor=white)](#docker-deployment)
+[![Python 3.12 | 3.14](https://img.shields.io/badge/Python-3.12%20%7C%203.14-3776AB.svg?logo=python&logoColor=white)](#prerequisites)
 [![LangGraph](https://img.shields.io/badge/LangGraph-1.2+-blue.svg)](https://github.com/langchain-ai/langgraph)
 [![SQLite Checkpointing](https://img.shields.io/badge/Checkpoints-Durable%20SQLite-indigo.svg)](#human-in-the-loop-hitl--checkpoint-persistence)
 [![FastAPI Dashboard](https://img.shields.io/badge/Portal-FastAPI%20Web%20App-009688.svg)](#web-operations-portal--rest-api)
 [![WITSML Streaming](https://img.shields.io/badge/Telemetry-WITSML%20%7C%20Real--time-yellow.svg)](#real-time-telemetry--witsml-streaming)
 [![ChromaDB](https://img.shields.io/badge/ChromaDB-1.5+-red.svg)](https://www.trychroma.com/)
 [![Local Ollama](https://img.shields.io/badge/LLM-Local%20Ollama%20(Llama3.2)-orange.svg)](https://ollama.ai)
-[![Compliance](https://img.shields.io/badge/Standards-OSHA%20%7C%20API%20RP%2054%20%7C%20ISO%2045001-purple.svg)](#regulatory-frameworks)
+[![Compliance](https://img.shields.io/badge/Standards-OSHA%20%7C%20API%20RP%2054%20%7C%20ISO%2045001-purple.svg)](#regulatory-frameworks-reference)
 
 An enterprise-grade, stateful multi-agent workflow orchestration system built with **LangGraph (Python)** that automates:
 1. **Daily Drilling Report (DDR) Ingestion & Semantic Parsing**
@@ -27,9 +28,74 @@ An enterprise-grade, stateful multi-agent workflow orchestration system built wi
 
 ---
 
-## Architecture & State Machine
+## Architecture & System Design
 
 The orchestrator operates as a directed acyclic state graph with conditional branching managed by **LangGraph**. The workflow enforces a **deterministic-first gating pattern**: probabilistic LLMs are never permitted to override hard safety constraints.
+
+### ASCII Architecture Overview
+
+```
++=======================================================================================+
+|                              Operational Input Layer                                  |
+|         [ Daily Drilling Report ]     [ Stop Work Authority ]     [ Job Safety JSA ]  |
++=======================================================================================+
+                                           |
+                                           v
++---------------------------------------------------------------------------------------+
+|                                      ingest_node                                      |
+|                 Format Detection -> Normalization -> UnifiedSafetyData                 |
++---------------------------------------------------------------------------------------+
+                                           |
+                                           v
++---------------------------------------------------------------------------------------+
+|                                  rule_validator_node                                  |
+|                 Deterministic Rule Engine (OSHA 1910 / API RP 54 / API 16D)           |
+|                 Zero-Hallucination Gating (H2S >= 10 ppm, BOP Seals, LOTO)            |
++---------------------------------------------------------------------------------------+
+                                           |
+                                           v
++---------------------------------------------------------------------------------------+
+|                                  rag_enrichment_node                                  |
+|                 ChromaDB Vector Retrieval + Hybrid Keyword Boosting                   |
+|                 Extracts Company SOPs, HAZWOPER & Regulatory Mandates                 |
++---------------------------------------------------------------------------------------+
+                                           |
+                                           v
++---------------------------------------------------------------------------------------+
+|                             multi_agent_deliberation_node                             |
+|          +--------------------+  +----------------------+  +---------------------+    |
+|          | Operations Agent   |  | OSHA Compliance Agent|  | Forensic Reliability|    |
+|          | (Schedule/Drill)   |  | (CFR Regulations)    |  | (Barrier Ruptures)  |    |
+|          +--------------------+  +----------------------+  +---------------------+    |
++---------------------------------------------------------------------------------------+
+                                           |
+                                           v
++---------------------------------------------------------------------------------------+
+|                              root_cause_analysis_node                                 |
+|                 Safety Arbiter & Iterative 5 Whys Root Cause Synthesis                |
+|                 Blame-Free Human Factors & Systemic Organizational RCA                |
++---------------------------------------------------------------------------------------+
+                                           |
+                                           v
++---------------------------------------------------------------------------------------+
+|                                  compliance_car_node                                  |
+|                 Corrective Action Plan (ISO 45001 / API Q2 CAPA Synthesis)            |
++---------------------------------------------------------------------------------------+
+                                           |
+                     +---------------------+---------------------+
+                     | Severity >= CRITICAL or SWA Violation?    |
+                     +-------------------------------------------+
+                                   /               \
+                             YES  /                 \  NO (Compliant / Low)
+                                 v                   v
++-----------------------------------------+   +-----------------------------------------+
+|          human_escalation_node          |   |                  [END]                  |
+|    Durable SQLite State Checkpoint      |   |            Audit Auto-Approved          |
+|    Blocks Restart Pending Sign-off      |   +-----------------------------------------+
++-----------------------------------------+
+```
+
+### Mermaid Workflow Graph
 
 ```mermaid
 flowchart TD
@@ -85,6 +151,7 @@ class SafetyGraphState(TypedDict, total=False):
     unified_data: Optional[UnifiedSafetyData]
     rule_violations: Annotated[List[RuleViolation], add]
     retrieved_sops: Annotated[List[RetrievedSOP], add]
+    agent_deliberations: Annotated[List[AgentPerspective], add]
     rca_result: Optional[RootCauseAnalysisResult]
     car_report: Optional[CorrectiveActionReport]
     escalation_required: bool
@@ -116,14 +183,41 @@ An embedded vector store indexes Standard Operating Procedures (SOPs) and CFR re
 ```
 safety-graph-orchestrator/
 ├── pyproject.toml              # Modern UV/PEP 621 configuration
-├── README.md                   # Architecture & recruiter documentation
+├── Makefile                    # Standard CLI task runner (test, eval, serve, docker)
+├── .env.example                # Environment variables template
+├── .gitignore                  # Comprehensive strict Git exclusion rules
+├── Dockerfile                  # Multi-stage production container build
+├── docker-compose.yml          # Container orchestration (Orchestrator + Ollama)
+├── README.md                   # System documentation & technical guide
+├── configs/                    # System & Logging Configurations
+│   ├── safety_graph.yaml       # Primary pipeline settings, thresholds & LLM parameters
+│   ├── rules_baseline.json     # Rule definitions & regulatory citations
+│   └── logging.yaml            # Logging formats and loglevel configuration
+├── docker/                     # Dedicated Docker Assets
+│   ├── Dockerfile              # Multi-stage production Dockerfile
+│   ├── docker-compose.yml      # Service composition for containerized deployment
+│   ├── entrypoint.sh           # Container entrypoint and permission initialization
+│   └── README.md               # Container operations guide
+├── docs/                       # Technical Documentation
+│   ├── architecture.md         # In-depth system architecture & LangGraph specification
+│   ├── quickstart.md           # Developer & operator quickstart guide
+│   ├── api.md                  # REST API endpoints & request/response schemas
+│   └── compliance_standards.md # OSHA, API RP 54, API 16D & ISO 45001 taxonomy
+├── data/
+│   └── samples/                # Realistic test payloads
+│       ├── ddr_deepwater_kick.json & .txt
+│       ├── swa_h2s_manifold.json & .txt
+│       ├── jsa_tripping_operations.json & .txt
+│       ├── sample_well_kick.witsml.xml
+│       └── ddr_routine_compliant.json
 ├── src/
 │   └── safety_graph_orchestrator/
-│       ├── cli.py              # Rich CLI interface (audit, rules, sops, demo)
+│       ├── cli.py              # Typer + Rich CLI interface (audit, rules, sops, demo)
 │       ├── core/
 │       │   ├── config.py       # Pydantic BaseSettings & env configs
-│       │   ├── models.py       # Domain models (DDR, SWA, JSA, Violations, CAR)
+│       │   ├── models.py       # Pydantic Domain models (DDR, SWA, JSA, CAR)
 │       │   ├── state.py        # LangGraph State Schema with reducers
+│       │   ├── checkpoint.py   # SQLite durable checkpointer
 │       │   └── llm.py          # ChatOllama factory + deterministic mock provider
 │       ├── parsers/
 │       │   ├── base.py         # Abstract parser interface
@@ -137,44 +231,56 @@ safety-graph-orchestrator/
 │       │   └── builtins.py     # Deterministic OSHA / API RP 54 rule implementations
 │       ├── retrieval/
 │       │   ├── corpus.py       # Seeded company SOPs and OSHA CFR text
-│       │   └── vector_store.py # ChromaDB persistent vector collection
+│       │   ├── vector_store.py # ChromaDB persistent vector collection
+│       │   └── ingest_docs.py  # Markdown/text SOP chunking & hybrid retriever
 │       ├── rca/
+│       │   ├── deliberation.py # Multi-agent committee deliberation (Ops/OSHA/Forensic)
 │       │   └── five_whys.py    # 5 Whys iterative causal interrogation agent
 │       ├── compliance/
-│       │   └── car_generator.py# CAR / CAPA generator (ISO 45001 / API Q2)
+│       │   ├── car_generator.py# CAR / CAPA generator (ISO 45001 / API Q2)
+│       │   └── exporter.py     # High-fidelity HTML & JSON report generation
+│       ├── telemetry/
+│       │   ├── witsml_parser.py# WITSML 1.4 XML drilling mud log parser
+│       │   └── stream_monitor.py# Real-time kick & gas early-warning monitor
+│       ├── evals/
+│       │   └── benchmark.py    # Automated Zero False-Negative safety benchmark
+│       ├── server/
+│       │   └── app.py          # FastAPI web operations portal & REST endpoints
 │       └── graph/
 │           ├── builder.py      # LangGraph state graph compiler & runner
 │           ├── nodes.py        # Graph execution nodes
 │           └── edges.py        # Conditional routing functions
-├── data/
-│   └── samples/                # Realistic test payloads
-│       ├── ddr_deepwater_kick.json & .txt
-│       ├── swa_h2s_manifold.json & .txt
-│       ├── jsa_tripping_operations.json & .txt
-│       └── ddr_routine_compliant.json
-└── tests/                      # 32 Comprehensive Unit & Integration Tests
+└── tests/                      # 59 Comprehensive Unit & Integration Tests
     ├── conftest.py
+    ├── test_cli.py
+    ├── test_server.py
     ├── test_ddr_parser.py
     ├── test_swa_parser.py
     ├── test_jsa_parser.py
     ├── test_rules_engine.py
     ├── test_retrieval.py
+    ├── test_doc_ingest.py
+    ├── test_deliberation.py
     ├── test_rca_five_whys.py
     ├── test_car_generator.py
+    ├── test_exporter.py
+    ├── test_checkpoint.py
+    ├── test_telemetry.py
+    ├── test_evals.py
     ├── test_graph_transitions.py
     └── test_e2e_workflow.py
 ```
 
 ---
 
-## Getting Started
+## Quickstart
 
 ### Prerequisites
 - Python 3.12+ (Python 3.14 compatible)
 - [uv](https://github.com/astral-sh/uv) (recommended) or standard `pip`
 - Optional: Local [Ollama](https://ollama.ai) daemon running `llama3.2`
 
-### Installation
+### 1. Installation
 ```bash
 git clone https://github.com/your-username/safety-graph-orchestrator.git
 cd safety-graph-orchestrator
@@ -183,11 +289,18 @@ cd safety-graph-orchestrator
 uv sync
 ```
 
+### 2. Environment Configuration
+```bash
+# Copy environment configuration template
+cp .env.example .env
+```
+Default parameters run with `SAFETY_GRAPH_USE_MOCK_LLM_FALLBACK=true`, allowing instant offline execution without external dependencies.
+
 ---
 
 ## CLI Usage & Interactive Demo
 
-The system includes a CLI built with **Typer** and **Rich** formatting:
+The system provides a CLI built with **Typer** and **Rich** formatting:
 
 ### 1. Launch the Interactive Web Portal
 ```bash
@@ -324,7 +437,7 @@ docker compose logs -f orchestrator
 
 The repository includes a production-grade [GitHub Actions Workflow](.github/workflows/ci.yml) that automatically executes on every push and PR:
 1. **Dependency Resolution**: Cached environment setup via `astral-sh/setup-uv`.
-2. **Pytest Suite**: Runs all 45 unit and integration tests across parsers, rules, vector retrieval, and state transitions.
+2. **Pytest Suite**: Runs all 59 unit and integration tests across parsers, rules, vector retrieval, CLI, and state transitions.
 3. **Safety Benchmark Evals**: Validates the 100% Zero False-Negative rate on life-safety rules.
 4. **Compiled Architecture Verification**: Programmatically compiles the LangGraph state machine.
 
@@ -340,17 +453,34 @@ uv run pytest -v
 
 ```
 ============================== test session starts ==============================
-collected 32 items
+collected 59 items
 
 tests/test_car_generator.py::test_car_generation_for_critical_incident PASSED
 tests/test_car_generator.py::test_car_generation_for_compliant_report PASSED
+tests/test_checkpoint.py::test_checkpoint_persistence PASSED
+tests/test_checkpoint.py::test_checkpoint_signoff_update PASSED
+tests/test_cli.py::test_cli_help PASSED
+tests/test_cli.py::test_cli_rules PASSED
+tests/test_cli.py::test_cli_sops_query PASSED
+tests/test_cli.py::test_cli_graph_mermaid PASSED
+tests/test_cli.py::test_cli_graph_ascii PASSED
+tests/test_cli.py::test_cli_audit_compliant_sample PASSED
+tests/test_cli.py::test_cli_audit_critical_sample PASSED
+tests/test_cli.py::test_cli_audit_nonexistent_file PASSED
+tests/test_cli.py::test_cli_threads PASSED
+tests/test_cli.py::test_cli_evaluate PASSED
+tests/test_cli.py::test_cli_stream PASSED
 tests/test_ddr_parser.py::test_ddr_parser_json PASSED
 tests/test_ddr_parser.py::test_ddr_parser_unstructured_text PASSED
 tests/test_ddr_parser.py::test_ddr_auto_detector PASSED
+tests/test_deliberation.py::test_multi_agent_deliberation_perspectives PASSED
+tests/test_doc_ingest.py::test_custom_sop_ingestion_and_hybrid_retrieval PASSED
 tests/test_e2e_workflow.py::test_e2e_ddr_deepwater_kick PASSED
 tests/test_e2e_workflow.py::test_e2e_swa_h2s_manifold PASSED
 tests/test_e2e_workflow.py::test_e2e_jsa_tripping_operations PASSED
 tests/test_e2e_workflow.py::test_e2e_ddr_routine_compliant PASSED
+tests/test_evals.py::test_benchmark_evals_harness PASSED
+tests/test_exporter.py::test_html_report_export PASSED
 tests/test_graph_transitions.py::test_route_after_ingestion_success PASSED
 tests/test_graph_transitions.py::test_route_after_ingestion_failure PASSED
 tests/test_graph_transitions.py::test_route_after_car_escalation_required PASSED
@@ -371,11 +501,21 @@ tests/test_rules_engine.py::test_well_control_barrier_rule PASSED
 tests/test_rules_engine.py::test_swa_premature_restart_rule PASSED
 tests/test_rules_engine.py::test_working_at_heights_rule PASSED
 tests/test_rules_engine.py::test_compliant_ddr_returns_zero_violations PASSED
+tests/test_server.py::test_server_rules_endpoint PASSED
+tests/test_server.py::test_server_sops_search_endpoint PASSED
+tests/test_server.py::test_server_audit_endpoint PASSED
+tests/test_server.py::test_server_portal_index_html PASSED
+tests/test_server.py::test_server_threads_endpoint PASSED
+tests/test_server.py::test_server_stream_endpoint PASSED
+tests/test_server.py::test_server_stream_kick_detection PASSED
 tests/test_swa_parser.py::test_swa_parser_json PASSED
 tests/test_swa_parser.py::test_swa_parser_unstructured_text PASSED
 tests/test_swa_parser.py::test_swa_auto_detector PASSED
+tests/test_telemetry.py::test_witsml_xml_parser PASSED
+tests/test_telemetry.py::test_early_warning_kick_detection PASSED
+tests/test_telemetry.py::test_normal_telemetry_no_anomalies PASSED
 
-======================== 32 passed, 1 warning in 4.94s =========================
+======================== 59 passed in 11.53s =========================
 ```
 
 ---
@@ -391,3 +531,9 @@ tests/test_swa_parser.py::test_swa_auto_detector PASSED
 | **API RP 54** | Recommended Practice 54 | Health & safety standards for well drilling and servicing rigs |
 | **API Spec 16D** | Well Control Equipment Specs | Hydraulic control systems for surface/subsea BOP & choke manifolds |
 | **ISO 45001 / API Q2** | Occupational Health & Safety | Quality and safety management system CAPA closed-loop processes |
+
+---
+
+## License
+
+This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.

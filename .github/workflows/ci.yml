@@ -30,7 +30,7 @@ jobs:
       - name: Install Dependencies
         run: uv sync --frozen
 
-      - name: Run Pytest Suite (45 Tests)
+      - name: Run Pytest Suite (Unit & Integration)
         run: uv run pytest -v
 
       - name: Run Automated Safety Evals Benchmark (LLM-as-a-Judge)

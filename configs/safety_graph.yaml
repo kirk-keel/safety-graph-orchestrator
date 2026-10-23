@@ -1,0 +1,64 @@
+# ==============================================================================
+# Safety Graph Orchestrator - Primary System Configuration
+# ==============================================================================
+
+app:
+  name: "safety-graph-orchestrator"
+  version: "0.1.0"
+  environment: "production"
+  log_level: "INFO"
+
+# LLM Inference Configuration (Ollama Local Daemon)
+llm:
+  provider: "ollama"
+  base_url: "http://localhost:11434"
+  model: "llama3.2:latest"
+  temperature: 0.1
+  timeout_seconds: 60.0
+  use_mock_fallback: true
+
+# Vector Store & Semantic Retrieval (ChromaDB)
+retrieval:
+  collection_name: "safety_sops_and_regulations"
+  persist_directory: ".chromadb"
+  top_k: 4
+  similarity_threshold: 0.70
+  hybrid_search:
+    enabled: true
+    keyword_boost_weight: 0.15
+
+# Deterministic Safety Rules & Thresholds
+safety_rules:
+  h2s_threshold_ppm: 10.0
+  lel_combustible_pct: 10.0
+  high_pressure_trip_psi: 3000.0
+  working_at_heights_ft: 6.0
+  strict_swa_supervisory_signoff: true
+  enforce_permit_to_work: true
+
+# Root Cause Analysis (RCA) & Deliberation Engine
+rca:
+  max_depth: 5
+  perspectives:
+    - role: "Operations"
+      domain: "Drilling & Well Operations"
+    - role: "OSHA & Regulatory Compliance"
+      domain: "Standards Adherence & Reporting"
+    - role: "Forensic Reliability"
+      domain: "Equipment Failure & Mechanical Integrity"
+
+# LangGraph State Persistence & Human Escalation
+workflow:
+  checkpoint_db_path: ".checkpoints.db"
+  auto_escalate_critical: true
+  escalation_gate_roles:
+    - "HSE Director"
+    - "Rig Superintendent"
+    - "Operations VP"
+
+# Real-time Telemetry Monitor
+telemetry:
+  buffer_size: 30
+  pit_gain_threshold_bbl: 3.0
+  pressure_spike_threshold_psi: 400.0
+  h2s_limit_ppm: 10.0

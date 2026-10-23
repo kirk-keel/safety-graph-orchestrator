@@ -1,0 +1,69 @@
+{
+  "system": "Safety Graph Orchestrator Rules Catalog",
+  "version": "1.0.0",
+  "rules": [
+    {
+      "rule_id": "RULE-H2S-001",
+      "rule_name": "H2S Toxic Gas Threshold Exceeded",
+      "severity": "CRITICAL",
+      "regulatory_standard": "OSHA 29 CFR 1910.120 (HAZWOPER / Toxic Gas Contingency)",
+      "citation": "29 CFR 1910.120 / API RP 54 Section 20.3 (Hydrogen Sulfide Contingency)",
+      "condition": "h2s_ppm >= 10.0",
+      "action": "Immediate evacuation, muster upwind, don 30-minute positive pressure SCBA, activate rig alarms"
+    },
+    {
+      "rule_id": "RULE-WELLCTRL-002",
+      "rule_name": "High-Pressure Well Control Barrier Degradation",
+      "severity": "CRITICAL",
+      "regulatory_standard": "API Spec 16D (Control Systems for Drilling Well Control Equipment)",
+      "citation": "API RP 54 Section 6 & API Spec 16D (Well Control & Choke Manifold Integrity)",
+      "condition": "high_pressure_psi >= 3000.0 AND barrier_leak_detected",
+      "action": "Isolate high-pressure line via upstream hydraulic gate valve, bleed line to 0 PSI, lock out before repair"
+    },
+    {
+      "rule_id": "RULE-FALLPROT-003",
+      "rule_name": "Working at Heights Fall Protection Deficiency",
+      "severity": "HIGH",
+      "regulatory_standard": "OSHA 29 CFR 1926.501 (Fall Protection in Construction/Derrick)",
+      "citation": "29 CFR 1926.501 / API RP 54 Section 9.3 (Personal Fall Arrest Systems)",
+      "condition": "fall_height_ft >= 6.0 AND (ppe_gap OR unmitigated_fall_hazard)",
+      "action": "Halt derrick activities until 100% dual-lanyard tie-off with certified anchor point is inspected and verified"
+    },
+    {
+      "rule_id": "RULE-LOTO-004",
+      "rule_name": "Lockout/Tagout Zero Energy State Non-Conformance",
+      "severity": "CRITICAL",
+      "regulatory_standard": "OSHA 29 CFR 1910.147 (Lockout/Tagout - Hazardous Energy)",
+      "citation": "29 CFR 1910.147 / API RP 54 Section 21 (Hazardous Energy Control)",
+      "condition": "lockout_tagout_verified == false",
+      "action": "Halt maintenance, bleed stored energy, apply personal padlocks and tags, verify zero mechanical/hydraulic energy"
+    },
+    {
+      "rule_id": "RULE-SWA-005",
+      "rule_name": "Stop Work Authority Resumed Without Authorized Sign-off",
+      "severity": "CRITICAL",
+      "regulatory_standard": "API RP 54 (Occupational Safety for Oil & Gas Well Operations)",
+      "citation": "API RP 54 Section 4.3 (Stop Work Authority) & IADC SMS Policy",
+      "condition": "swa_invoked == true AND premature_restart == true",
+      "action": "Immediately suspend operations; conduct mandatory stand-down; require written sign-off from Toolpusher & HSE Specialist"
+    },
+    {
+      "rule_id": "RULE-HOTWORK-006",
+      "rule_name": "Hot Work in Hazardous Atmosphere Without Permit",
+      "severity": "CRITICAL",
+      "regulatory_standard": "OSHA 29 CFR 1910.119 (Process Safety Management)",
+      "citation": "29 CFR 1910.119(k) & API RP 54 Section 22 (Hot Work Permits)",
+      "condition": "hot_work_active == true AND (lel_pct >= 10.0 OR permit_missing)",
+      "action": "Extinguish ignition sources, continuously ventilate area, verify continuous LEL monitoring below 10%"
+    },
+    {
+      "rule_id": "RULE-PPE-007",
+      "rule_name": "Personal Protective Equipment Compliance Failure",
+      "severity": "MEDIUM",
+      "regulatory_standard": "OSHA 29 CFR 1910.132 (Personal Protective Equipment)",
+      "citation": "29 CFR 1910.132 / API RP 54 Section 5 (PPE Requirements)",
+      "condition": "ppe_compliance_gap == true",
+      "action": "Re-equip crew members with task-appropriate PPE before permitting entry into red zone"
+    }
+  ]
+}
