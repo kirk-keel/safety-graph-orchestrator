@@ -1,0 +1,9 @@
+STOP WORK AUTHORITY INCIDENT NOTIFICATION
+Rig: NABORS-PACIFIC-09
+Incident ID: SWA-2026-0881
+Reported By: Lead Motorman
+Location: Choke & Kill Manifold Skid
+Date: 2026-10-22 03:45 UTC
+
+HAZARD DESCRIPTION:
+Weeping flange leak observed on the 4-inch high pressure choke manifold operating at 4800 psi. Multi-gas personal monitor detected 16.2 ppm H2S. Tour pusher attempted to tighten bolts while the manifold remained under 4800 psi without bleeding down. Operations halted under SWA, but drilling pump was restarted before formal inspection sign-off and root cause containment.

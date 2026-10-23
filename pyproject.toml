@@ -1,0 +1,29 @@
+[project]
+name = "safety-graph-orchestrator"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Kirk Keel", email = "kirk.keel@mail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "chromadb>=1.5.9",
+    "langchain-core>=1.7.0",
+    "langchain-ollama>=1.1.0",
+    "langgraph>=1.2.16",
+    "pydantic>=2.14.1",
+    "pydantic-settings>=2.16.1",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pyyaml>=6.0.3",
+    "rich>=15.0.0",
+    "typer>=0.27.3",
+]
+
+[project.scripts]
+safety-graph-orchestrator = "safety_graph_orchestrator:main"
+
+[build-system]
+requires = ["uv_build>=0.13.3,<0.14.0"]
+build-backend = "uv_build"

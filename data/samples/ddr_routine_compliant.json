@@ -1,0 +1,42 @@
+{
+  "well_name": "VALLEY-EXPLORER-07",
+  "rig_id": "PRECISION-442",
+  "report_date": "2026-10-22",
+  "current_depth_ft": 9250.0,
+  "mud_weight_ppg": 9.6,
+  "flow_line_temp_f": 110.0,
+  "h2s_detected_ppm": 0.0,
+  "lel_combustible_pct": 0.0,
+  "high_pressure_psi": 1200.0,
+  "active_permits": [
+    "PERMIT-ROUTINE-DRILL"
+  ],
+  "bha_description": "Standard 7-7/8 inch tricone bit and drilling collars",
+  "intervals": [
+    {
+      "start_time": "00:00",
+      "end_time": "06:00",
+      "duration_hours": 6.0,
+      "operation_code": "DRILL",
+      "activity_description": "Drilling ahead smoothly from 8,900 ft to 9,250 ft with steady penetration rate.",
+      "safety_observations": ["Pre-shift hazard hunt completed. Rig floor clear of slip/trip hazards."]
+    },
+    {
+      "start_time": "06:00",
+      "end_time": "08:00",
+      "duration_hours": 2.0,
+      "operation_code": "CIRC",
+      "activity_description": "Circulating bottoms up. Gas readings at baseline zero.",
+      "safety_observations": ["All sensors calibrated and operating within green parameters."]
+    }
+  ],
+  "safety_remarks": [
+    "Routine operations proceeding according to approved drilling program.",
+    "No safety incidents or Stop Work Authority calls during this 24-hr period."
+  ],
+  "incidents_reported": [],
+  "swa_invoked": false,
+  "premature_restart": false,
+  "lockout_tagout_verified": true,
+  "ppe_compliance_gap": false
+}

@@ -1,0 +1,14 @@
+DAILY DRILLING TOUR REPORT
+Rig: TRANSOCEAN-ORION
+Well: GULF-DEEP-104
+Date: 2026-10-22
+Current Depth: 18,450 ft | Mud Weight: 13.8 ppg | Bit: 8-1/2 PDC
+
+OPERATIONAL INTERVALS:
+00:00 - 04:30: Rotary drilling ahead with RSS from 18,200' to 18,450'. High torque observed.
+04:30 - 06:00: Circulated bottoms up. Mud density 13.8 ppg. Shakers normal.
+06:00 - 09:30: Tripping out of hole. At stand 18, noticed swabbing and pit volume discrepancy (+6 bbls).
+09:30 - 12:00: Well started flowing through drill pipe. Stabbed TIW safety valve, closed annular preventer. Operating pressure 5200 psi on choke line. Choke manifold flange leaking fluid. Fixed sensor detected 14.5 ppm H2S toxic gas near shaker area.
+
+SAFETY REMARKS:
+Stop Work Authority invoked by Assistant Driller. Crew donned SCBA breathing equipment. High pressure leak on choke manifold line at 5200 psi requires immediate torque and seal inspection before resumption.

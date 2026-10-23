@@ -1,0 +1,19 @@
+JOB SAFETY ANALYSIS (JSA) AUDIT RECORD
+JSA Number: JSA-RIG-09-TRIP-014
+Task Title: Tripping 5-inch Drill Pipe & Monkey Board Operations
+Rig: NABORS-PACIFIC-09
+Date: 2026-10-22
+
+STEPS AND CONTROLS:
+Step 1: Derrickman ascends ladder to monkey board at 85 feet.
+Hazards: Fall from height exceeding 80 feet, oil-slick rungs.
+Controls: None listed.
+PPE: Hardhat, basic steel toes. (Missing fall arrest harness and 100% tie-off lanyard).
+
+Step 2: Latching elevators and racking stands.
+Hazards: Heavy pinch point on pipe joints and fingerboard fingers.
+Controls: None.
+PPE: Standard cotton/leather gloves. (Missing impact gloves and push-pole).
+
+Step 3: Break out with iron roughneck.
+Controls: Stand clear of rotating zone. Impact gloves required.

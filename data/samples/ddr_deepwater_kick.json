@@ -1,0 +1,66 @@
+{
+  "well_name": "GULF-DEEP-104",
+  "rig_id": "TRANSOCEAN-ORION",
+  "report_date": "2026-10-22",
+  "current_depth_ft": 18450.0,
+  "mud_weight_ppg": 13.8,
+  "flow_line_temp_f": 142.5,
+  "h2s_detected_ppm": 14.5,
+  "lel_combustible_pct": 8.0,
+  "high_pressure_psi": 5200.0,
+  "active_permits": [
+    "PERMIT-HOTWORK-09",
+    "PERMIT-WELLCONTROL-02"
+  ],
+  "bha_description": "8-1/2 inch PDC Bit, RSS, MWD/LWD Telemetry, 6-3/4 inch Drill Collars",
+  "intervals": [
+    {
+      "start_time": "00:00",
+      "end_time": "04:30",
+      "duration_hours": 4.5,
+      "operation_code": "DRILL",
+      "activity_description": "Drilled 8-1/2 inch hole from 18,200 ft to 18,450 ft. ROP 55 ft/hr. WOB 22 klbs, RPM 110. Background gas 35 units.",
+      "safety_observations": ["Pre-tour safety meeting completed with drill crew."]
+    },
+    {
+      "start_time": "04:30",
+      "end_time": "06:00",
+      "duration_hours": 1.5,
+      "operation_code": "CIRC",
+      "activity_description": "Pumped bottoms up. Mud weight in 13.8 ppg, mud weight out 13.8 ppg. Shakers clear.",
+      "safety_observations": ["Mud engineer checked active pits."]
+    },
+    {
+      "start_time": "06:00",
+      "end_time": "09:30",
+      "duration_hours": 3.5,
+      "operation_code": "TRIP",
+      "activity_description": "Pulled 25 stands of drill pipe out of hole. Swabbing observed on stand 18. Hole fill took 6 bbls less than calculated displacement.",
+      "safety_observations": ["Trip sheet audit flagged 6 bbl gain in trip tank."]
+    },
+    {
+      "start_time": "09:30",
+      "end_time": "12:00",
+      "duration_hours": 2.5,
+      "operation_code": "WELLCTRL",
+      "activity_description": "Well flowing on trip tank. Installed FOSV / TIW valve. Closed annular preventer. Shut-in drill pipe pressure (SIDPP) 450 PSI, SICP 650 PSI. Choke manifold weeping at 5,200 PSI flange connection. Fixed H2S detector at shaker pit registered 14.5 ppm H2S.",
+      "safety_observations": [
+        "Toxic gas audible alarm sounded.",
+        "Stop Work Authority invoked by Assistant Driller.",
+        "Non-essential personnel mustered at Upwind Lifeboat Station 1."
+      ]
+    }
+  ],
+  "safety_remarks": [
+    "Toxic gas alarm activated due to 14.5 ppm H2S at mud logging unit.",
+    "Well shut-in on annular preventer with 650 PSI casing pressure.",
+    "Choke manifold downstream line weeping under 5,200 PSI pressure."
+  ],
+  "incidents_reported": [
+    "Gas kick influx during tripping pipe (swabbing)",
+    "H2S gas detection exceeding 10 ppm permissible threshold",
+    "Pressure containment weeping on choke manifold high-pressure flange"
+  ],
+  "swa_invoked": true,
+  "premature_restart": false
+}

@@ -1,0 +1,64 @@
+{
+  "jsa_number": "JSA-RIG-09-TRIP-014",
+  "task_title": "Tripping 5-inch Drill Pipe & Racking Stands on Monkey Board",
+  "rig_id": "NABORS-PACIFIC-09",
+  "date": "2026-10-22",
+  "permit_to_work_required": true,
+  "permit_type": "GENERAL_OPERATIONS",
+  "crew_members_present": [
+    "Driller",
+    "Assistant Driller",
+    "Derrickman",
+    "Floorhand 1",
+    "Floorhand 2"
+  ],
+  "supervisor_approval": true,
+  "fall_height_ft": 85.0,
+  "high_pressure_psi": 0.0,
+  "h2s_ppm": 0.0,
+  "steps": [
+    {
+      "step_number": 1,
+      "task_description": "Ascend mast ladder to monkey board (85 ft elevation).",
+      "potential_hazards": [
+        "Catastrophic fall from heights exceeding 80 feet",
+        "Slippery rungs due to synthetic oil-based mud mist"
+      ],
+      "required_controls": [],
+      "ppe_required": [
+        "Hardhat",
+        "Steel toe boots"
+      ],
+      "residual_risk_level": "HIGH"
+    },
+    {
+      "step_number": 2,
+      "task_description": "Latch elevator on drill pipe stand and guide pipe into fingerboard.",
+      "potential_hazards": [
+        "Severe hand pinch points between elevator latch and drill pipe tool joint",
+        "Swinging pipe impact against worker torso"
+      ],
+      "required_controls": [],
+      "ppe_required": [
+        "Standard leather gloves"
+      ],
+      "residual_risk_level": "MEDIUM"
+    },
+    {
+      "step_number": 3,
+      "task_description": "Break out drill pipe connection with hydraulic iron roughneck.",
+      "potential_hazards": [
+        "Hydraulic line rupture under 2,500 PSI",
+        "Pinch points on torque wrench dies"
+      ],
+      "required_controls": [
+        "Verify all personnel clear of roughneck swing radius before activation"
+      ],
+      "ppe_required": [
+        "Impact gloves",
+        "Safety glasses"
+      ],
+      "residual_risk_level": "LOW"
+    }
+  ]
+}

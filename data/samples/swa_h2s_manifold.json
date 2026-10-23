@@ -1,0 +1,24 @@
+{
+  "incident_id": "SWA-2026-0881",
+  "rig_id": "NABORS-PACIFIC-09",
+  "datetime_called": "2026-10-22T03:45:00Z",
+  "caller_role": "Lead Motorman",
+  "rig_location": "Choke & Kill Manifold Skid",
+  "hazard_description": "Observed continuous fluid mist and audible hissing from the 4-inch API Spec 16D choke manifold buffer flange operating under 4,800 PSI. Handheld multi-gas meter registered 16.2 ppm H2S in the immediate breathing zone. Tour pusher attempted to hot-torque flange bolts with sledge wrench while line was pressurized to 4,800 PSI.",
+  "immediate_actions_taken": [
+    "Motorman verbally invoked Stop Work Authority on rig floor.",
+    "Ordered personnel back 50 feet away from the pressurized line.",
+    "Donned 30-minute SCBA units.",
+    "Notified Toolpusher and Rig Superintendent."
+  ],
+  "potential_severity": "CRITICAL",
+  "operations_halted": true,
+  "operations_resumed_prematurely": true,
+  "supervisor_signoff": false,
+  "h2s_ppm": 16.2,
+  "high_pressure_psi": 4800.0,
+  "fall_height_ft": 0.0,
+  "hot_work_active": false,
+  "ppe_compliance_gap": false,
+  "lockout_tagout_verified": false
+}
