@@ -1,8 +1,10 @@
 # Safety Graph Orchestrator 🛡️⚡
 
-[![CI / Test Suite](https://img.shields.io/badge/pytest-36%20passed-brightgreen.svg)](#testing)
+[![CI / Test Suite](https://img.shields.io/badge/pytest-45%20passed-brightgreen.svg)](#testing)
 [![LangGraph](https://img.shields.io/badge/LangGraph-1.2+-blue.svg)](https://github.com/langchain-ai/langgraph)
 [![SQLite Checkpointing](https://img.shields.io/badge/Checkpoints-Durable%20SQLite-indigo.svg)](#human-in-the-loop-hitl--checkpoint-persistence)
+[![FastAPI Dashboard](https://img.shields.io/badge/Portal-FastAPI%20Web%20App-009688.svg)](#web-operations-portal--rest-api)
+[![WITSML Streaming](https://img.shields.io/badge/Telemetry-WITSML%20%7C%20Real--time-yellow.svg)](#real-time-telemetry--witsml-streaming)
 [![ChromaDB](https://img.shields.io/badge/ChromaDB-1.5+-red.svg)](https://www.trychroma.com/)
 [![Local Ollama](https://img.shields.io/badge/LLM-Local%20Ollama%20(Llama3.2)-orange.svg)](https://ollama.ai)
 [![Compliance](https://img.shields.io/badge/Standards-OSHA%20%7C%20API%20RP%2054%20%7C%20ISO%2045001-purple.svg)](#regulatory-frameworks)
@@ -12,12 +14,14 @@ An enterprise-grade, stateful multi-agent workflow orchestration system built wi
 2. **Stop Work Authority (SWA) & Incident Notifications**
 3. **Job Safety Analysis (JSA / JHA) Audit Verification**
 4. **Deterministic Hard Safety Rule Validation (Zero-Hallucination Gating)**
-5. **Vector Retrieval (ChromaDB) over Company SOPs and OSHA/API Standards**
+5. **Vector Retrieval (ChromaDB) with Hybrid Search & Custom SOP Ingestion**
 6. **Multi-Agent Deliberation Committee (Operations, Regulatory Compliance, Forensic Reliability)**
 7. **5 Whys Root Cause Analysis (RCA) via Local Ollama Models & Safety Arbiter**
 8. **Corrective & Preventive Action Report (CAR / CAPA) Synthesis (ISO 45001 / API Q2)**
 9. **Durable SQLite State Checkpointing & Human-in-the-Loop (HITL) Sign-off Gates**
-10. **Executive HTML / PDF Audit Report Generation**
+10. **Real-Time Rig Telemetry & WITSML Streaming with Early-Warning Kick Interception**
+11. **Automated Safety Benchmark Evals Harness (LLM-as-a-Judge)**
+12. **Interactive Web Operations Portal & REST API (FastAPI)**
 
 ---
 
@@ -183,31 +187,51 @@ uv sync
 
 The system includes a CLI built with **Typer** and **Rich** formatting:
 
-### 1. Run the Full Incident Simulation (Demo)
+### 1. Launch the Interactive Web Portal
+```bash
+uv run safety-graph-orchestrator serve --port 8000
+# Open http://localhost:8000 in your browser
+```
+
+### 2. Stream Real-Time Rig Telemetry (Early-Warning SWA Detection)
+```bash
+uv run safety-graph-orchestrator stream --steps 8 --kick
+```
+
+### 3. Run Automated Safety Benchmark Evals (LLM-as-a-Judge)
+```bash
+uv run safety-graph-orchestrator evaluate
+```
+
+### 4. Ingest Custom Corporate SOP Document into ChromaDB
+```bash
+uv run safety-graph-orchestrator sops --add path/to/sop_manual.md --id SOP-900 --ref "API Spec 16D"
+```
+
+### 5. Run the Full Incident Simulation (CLI Demo)
 ```bash
 uv run safety-graph-orchestrator demo
 ```
 
-### 2. Audit Any Operational Report (DDR / SWA / JSA)
+### 6. Audit Any Operational Report with HTML Export
 ```bash
-# Audit a deepwater gas kick DDR
-uv run safety-graph-orchestrator audit data/samples/ddr_deepwater_kick.json
+# Audit a deepwater gas kick DDR and export executive HTML report
+uv run safety-graph-orchestrator audit data/samples/ddr_deepwater_kick.json --export reports/kick_audit.html
 
-# Audit an unstructured freeform tour sheet
-uv run safety-graph-orchestrator audit data/samples/ddr_deepwater_kick.txt
-
-# Audit a Job Safety Analysis risk matrix
-uv run safety-graph-orchestrator audit data/samples/jsa_tripping_operations.json
+# Audit a standard WITSML 1.4 XML log
+uv run safety-graph-orchestrator audit data/samples/sample_well_kick.witsml.xml
 ```
 
-### 3. Inspect Deterministic Safety Rules
+### 7. Human-in-the-Loop Sign-off on Escalated Thread
 ```bash
-uv run safety-graph-orchestrator rules
-```
+# List all persisted audit threads
+uv run safety-graph-orchestrator threads
 
-### 4. Query Company SOPs & OSHA Regulations via Vector RAG
-```bash
-uv run safety-graph-orchestrator sops "choke manifold leaking flange torque"
+# Formally approve remediation and resume operations
+uv run safety-graph-orchestrator signoff <THREAD_ID> \
+    --approve \
+    --reviewer "Dr. Marcus Vance, Corporate Safety VP" \
+    --notes "Verified choke manifold flange replacement and calibrated torque logs."
 ```
 
 ---

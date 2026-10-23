@@ -90,9 +90,32 @@ def rules():
 
 
 @app.command()
-def sops(query: str = typer.Argument(..., help="Search query for company SOPs and OSHA standards")):
-    """Query ChromaDB vector retrieval for relevant safety operating procedures."""
+def sops(
+    query: Optional[str] = typer.Argument(None, help="Search query for company SOPs and OSHA standards"),
+    add_file: Optional[Path] = typer.Option(None, "--add", "-a", help="Path to custom SOP file (.md, .txt) to ingest into ChromaDB"),
+    doc_id: Optional[str] = typer.Option(None, "--id", help="Document identifier (e.g. SOP-701)"),
+    standard_ref: Optional[str] = typer.Option(None, "--ref", help="Standard reference (e.g. API RP 54)"),
+):
+    """Query ChromaDB or ingest custom corporate SOP documents into the vector store."""
+    from safety_graph_orchestrator.retrieval.ingest_docs import SOPDocumentIngestionPipeline
+
     store = SOPVectorStore()
+
+    if add_file:
+        pipeline = SOPDocumentIngestionPipeline(vector_store=store)
+        chunks = pipeline.ingest_file(add_file, doc_id=doc_id, standard_reference=standard_ref)
+        console.print(Panel(
+            f"[bold green]Successfully Ingested Custom SOP into ChromaDB[/bold green]\n"
+            f"Source File: {add_file.resolve()}\n"
+            f"Chunks Created & Embedded: {len(chunks)}",
+            border_style="green",
+        ))
+        return
+
+    if not query:
+        console.print("[yellow]Please provide a search query or use --add <file> to ingest a document.[/yellow]")
+        return
+
     console.print(f"[bold cyan]Searching safety corpus for:[/bold cyan] '{query}'")
     results = store.retrieve_relevant_sops(query, top_k=4)
 
@@ -200,6 +223,119 @@ def export(
         f"CAR: [bold]{car.car_number}[/bold] | Severity: [yellow]{car.overall_severity.value}[/yellow] | Status: {car.audit_status.value}",
         border_style="green",
     ))
+
+
+from safety_graph_orchestrator.telemetry.stream_monitor import (
+    RealTimeEarlyWarningMonitor,
+    simulate_rig_telemetry_stream,
+)
+
+
+@app.command()
+def stream(
+    rig_id: str = typer.Option("TRANSOCEAN-ORION", "--rig", help="Asset / Rig identifier"),
+    steps: int = typer.Option(10, "--steps", "-n", help="Number of telemetry frames to stream"),
+    inject_kick: bool = typer.Option(True, "--kick/--clean", help="Simulate well kick & toxic gas influx"),
+):
+    """Simulate real-time sensor telemetry stream with automated SWA early warning trigger."""
+    console.print(Panel.fit(
+        f"[bold cyan]Real-Time Rig Telemetry Ingestion Stream[/bold cyan]\n"
+        f"Rig: [yellow]{rig_id}[/yellow] | Frames: [white]{steps}[/white] | Influx Simulation: [{'bold red' if inject_kick else 'bold green'}]{inject_kick}[/]",
+        border_style="cyan",
+    ))
+
+    monitor = RealTimeEarlyWarningMonitor(rig_id=rig_id)
+    frames = simulate_rig_telemetry_stream(rig_id=rig_id, steps=steps, inject_kick=inject_kick)
+
+    anomaly_detected = False
+    for idx, frame in enumerate(frames, start=1):
+        console.print(
+            f"Frame {idx:02d} | Depth: {frame.depth_ft:.1f} ft | SPP: {frame.standpipe_pressure_psi:.0f} PSI | "
+            f"Pit: {frame.pit_volume_bbl:.1f} bbl | H2S: {frame.h2s_ppm} ppm",
+            style="dim" if frame.h2s_ppm == 0 and frame.pit_volume_bbl <= 450 else "bold yellow",
+        )
+        anomaly = monitor.process_frame(frame)
+        if anomaly and not anomaly_detected:
+            anomaly_detected = True
+            console.print(Panel(
+                f"[bold red]CRITICAL EARLY WARNING SWA TRIGGER DETECTED[/bold red]\n"
+                f"Type: [bold]{anomaly.anomaly_type}[/bold]\n"
+                f"Description: {anomaly.description}\n"
+                f"Automatically initiating LangGraph Safety Workflow...",
+                border_style="red",
+            ))
+            unified_data = monitor.to_unified_safety_data(anomaly)
+            final_state = run_safety_audit(raw_input=unified_data.raw_text, input_type=InputType.SWA)
+            _render_audit_results(final_state, verbose=False)
+            break
+
+    if not anomaly_detected:
+        console.print("[bold green]All telemetry frames normal. Drilling parameters within safe envelope.[/bold green]")
+
+
+from safety_graph_orchestrator.evals.benchmark import SafetyEvalsHarness
+
+
+@app.command()
+def evaluate():
+    """Run automated safety benchmark eval suite (Zero False-Negative, Rule Recall, Blame-Free Score)."""
+    console.print(Panel.fit(
+        "[bold cyan]Safety Graph Orchestrator Benchmark Evals (LLM-as-a-Judge)[/bold cyan]\n"
+        "Evaluating Zero False-Negative Rate, Regulatory Recall, and Systemic Blame-Free RCA Quality...",
+        border_style="cyan",
+    ))
+
+    harness = SafetyEvalsHarness()
+    with console.status("[bold green]Executing automated safety scenarios across multi-agent graph..."):
+        results = harness.run_benchmark()
+
+    table = Table(title="Safety Benchmark Scenario Results", border_style="blue")
+    table.add_column("Case ID", style="bold cyan")
+    table.add_column("Scenario", style="white")
+    table.add_column("Expected", style="yellow")
+    table.add_column("Actual", style="magenta")
+    table.add_column("Rules Triggered", style="dim")
+    table.add_column("ZFN Safe", justify="center")
+    table.add_column("Blame-Free", justify="center")
+
+    for d in results.scenario_details:
+        zfn_style = "[bold green]PASS[/bold green]" if d["zfn_passed"] else "[bold red]FAIL[/bold red]"
+        blame_style = "[bold green]YES[/bold green]" if d["blame_free"] else "[yellow]NO[/yellow]"
+        table.add_row(
+            d["case_id"],
+            d["title"],
+            d["expected_severity"],
+            d["actual_severity"],
+            ", ".join(d["rules_detected"]) or "None",
+            zfn_style,
+            blame_style,
+        )
+    console.print(table)
+
+    summary_panel = (
+        f"[bold]Total Scenarios:[/bold] {results.total_scenarios} | [bold]Passed:[/bold] {results.passed_scenarios}\n"
+        f"[bold]Zero False-Negative Rate:[/bold] [bold green]{results.zero_false_negative_rate}%[/bold green] (Life-Safety Non-Negotiables)\n"
+        f"[bold]Regulatory Rule Recall:[/bold] [bold cyan]{results.regulatory_rule_recall}%[/bold cyan]\n"
+        f"[bold]Blame-Free Systemic RCA Score:[/bold] [bold magenta]{results.blame_free_systemic_score}%[/bold magenta]"
+    )
+    console.print(Panel(summary_panel, title="Benchmark Aggregate Scorecard", border_style="green"))
+
+
+@app.command()
+def serve(
+    host: str = typer.Option("127.0.0.1", "--host", "-h", help="Bind host address"),
+    port: int = typer.Option(8000, "--port", "-p", help="Bind port"),
+    reload: bool = typer.Option(False, "--reload", help="Enable uvicorn auto-reload"),
+):
+    """Launch the Safety Graph Orchestrator Interactive Web Portal & REST API."""
+    import uvicorn
+    console.print(Panel(
+        f"[bold green]Starting Safety Graph Orchestrator Web Portal[/bold green]\n"
+        f"Server URL: [bold cyan]http://{host}:{port}[/bold cyan]\n"
+        f"REST API Docs: [cyan]http://{host}:{port}/docs[/cyan]",
+        border_style="cyan",
+    ))
+    uvicorn.run("safety_graph_orchestrator.server.app:app", host=host, port=port, reload=reload)
 
 
 @app.command()

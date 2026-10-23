@@ -7,6 +7,7 @@ from safety_graph_orchestrator.parsers.base import BaseSafetyParser
 from safety_graph_orchestrator.parsers.ddr_parser import DDRParser
 from safety_graph_orchestrator.parsers.jsa_parser import JSAParser
 from safety_graph_orchestrator.parsers.swa_parser import SWAParser
+from safety_graph_orchestrator.telemetry.witsml_parser import WITSMLParser
 
 
 class DocumentTypeDetector:
@@ -15,6 +16,10 @@ class DocumentTypeDetector:
     @staticmethod
     def detect_type(raw_text: str) -> InputType:
         raw_stripped = raw_text.strip()
+
+        # Check WITSML XML
+        if raw_stripped.startswith("<?xml") or "<witsml" in raw_stripped or "<mudLog" in raw_stripped:
+            return InputType.DDR
 
         # Check JSON keys first
         if raw_stripped.startswith("{") and raw_stripped.endswith("}"):
@@ -79,8 +84,11 @@ class UnifiedIngestionPipeline:
         self.ddr_parser = DDRParser()
         self.swa_parser = SWAParser()
         self.jsa_parser = JSAParser()
+        self.witsml_parser = WITSMLParser()
 
-    def get_parser(self, doc_type: InputType) -> BaseSafetyParser:
+    def get_parser(self, doc_type: InputType, raw_text: str = "") -> BaseSafetyParser:
+        if "<witsml" in raw_text or "<mudLog" in raw_text:
+            return self.witsml_parser
         if doc_type == InputType.DDR:
             return self.ddr_parser
         elif doc_type == InputType.SWA:
@@ -95,6 +103,6 @@ class UnifiedIngestionPipeline:
         else:
             detected_type = specified_type
 
-        parser = self.get_parser(detected_type)
+        parser = self.get_parser(detected_type, raw_text)
         parsed_data = parser.parse(raw_text)
         return detected_type, parsed_data

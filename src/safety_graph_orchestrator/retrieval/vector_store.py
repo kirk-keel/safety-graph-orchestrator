@@ -86,9 +86,10 @@ class SOPVectorStore:
         for doc_id, doc_text, meta, dist in zip(ids_list, docs_list, metas_list, distances):
             # Chroma distances: convert distance to normalized relevance score [0, 1]
             relevance = max(0.0, min(1.0, 1.0 - (float(dist) / 2.0)))
+            actual_doc_id = str(meta.get("doc_id", doc_id)) if meta else str(doc_id)
             retrieved.append(
                 RetrievedSOP(
-                    doc_id=doc_id,
+                    doc_id=actual_doc_id,
                     title=str(meta.get("title", doc_id)),
                     standard_reference=str(meta.get("standard_reference", "Company SOP")),
                     content=doc_text,

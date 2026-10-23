@@ -116,8 +116,16 @@ class JSAParser(BaseSafetyParser):
             fall_height = 30.0
 
         unmitigated = []
+        ppe_gap = False
+
+        if fall_height >= 6.0:
+            if re.search(r"(no harness|without harness|no fall arrest|no tie-off|missing harness|controls:\s*none)", text, re.IGNORECASE):
+                unmitigated.append(f"Elevation fall hazard ({fall_height} ft) without verified harness or 100% tie-off")
+                ppe_gap = True
+
         if re.search(r"(pinch point|crush|amputation)", text, re.IGNORECASE) and not re.search(r"(impact gloves|push pole|hands off)", text, re.IGNORECASE):
             unmitigated.append("Pinch point hazard identified without barrier control")
+            ppe_gap = True
 
         summary = f"Unstructured JSA for {task_title} on Rig {rig_id}."
 
@@ -136,7 +144,7 @@ class JSAParser(BaseSafetyParser):
             swa_invoked=False,
             premature_restart=False,
             lockout_tagout_verified=True,
-            ppe_compliance_gap=bool(unmitigated),
+            ppe_compliance_gap=ppe_gap,
             unmitigated_hazards=unmitigated,
             metadata={"task_title": task_title},
         )

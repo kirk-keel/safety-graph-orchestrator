@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<witsml:mudLogs xmlns:witsml="http://www.witsml.org/schemas/1series" version="1.4.1.1">
+  <mudLog uidWell="W-104" uid="ML-01">
+    <nameWell>GULF-DEEP-104</nameWell>
+    <nameRig>TRANSOCEAN-ORION</nameRig>
+    <dTim>2026-10-22T08:30:00Z</dTim>
+    <mudLogCompany>Baker Hughes Inteq</mudLogCompany>
+    <mudLogParameter>
+      <holeDepth uom="ft">18450.0</holeDepth>
+      <standpipePressure uom="psi">5200.0</standpipePressure>
+      <mudWeight uom="ppg">13.8</mudWeight>
+      <gasH2S uom="ppm">14.5</gasH2S>
+      <gasCombustible uom="%">8.0</gasCombustible>
+      <riskSummary>Well started flowing on trip tank. SIDPP 450 PSI. Flange on choke manifold weeping fluid. Stop Work Authority invoked.</riskSummary>
+      <comment>Toxic gas alarm activated due to 14.5 ppm H2S at mud logging unit. SCBA donning mandated.</comment>
+    </mudLogParameter>
+  </mudLog>
+</witsml:mudLogs>

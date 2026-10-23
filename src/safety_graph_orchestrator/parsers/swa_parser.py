@@ -107,7 +107,7 @@ class SWAParser(BaseSafetyParser):
         h2s_ppm = float(h2s_match.group(1)) if h2s_match else 0.0
 
         premature_restart = bool(
-            re.search(r"(resumed without|resumed before|bypassed sign-off|restarted without approval)", text, re.IGNORECASE)
+            re.search(r"(resumed without|resumed before|bypassed sign-off|restarted without|restarted before|bypassed lock)", text, re.IGNORECASE)
         )
 
         incident_id = f"SWA-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M')}"
