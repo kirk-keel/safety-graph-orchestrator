@@ -1,6 +1,8 @@
 # Safety Graph Orchestrator 🛡️⚡
 
 [![CI / Test Suite](https://img.shields.io/badge/pytest-45%20passed-brightgreen.svg)](#testing)
+[![GitHub Actions CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF.svg?logo=githubactions&logoColor=white)](#continuous-integration-cicd)
+[![Docker](https://img.shields.io/badge/Docker-Ready%20%7C%20Compose-2496ED.svg?logo=docker&logoColor=white)](#docker-deployment)
 [![LangGraph](https://img.shields.io/badge/LangGraph-1.2+-blue.svg)](https://github.com/langchain-ai/langgraph)
 [![SQLite Checkpointing](https://img.shields.io/badge/Checkpoints-Durable%20SQLite-indigo.svg)](#human-in-the-loop-hitl--checkpoint-persistence)
 [![FastAPI Dashboard](https://img.shields.io/badge/Portal-FastAPI%20Web%20App-009688.svg)](#web-operations-portal--rest-api)
@@ -298,6 +300,33 @@ When auditing `swa_h2s_manifold.json` (leaking choke manifold and premature rest
 │ Operational restart blocked pending human sign-off.                          │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ```
+
+---
+
+## Docker Deployment
+
+To launch the orchestrator along with a local Ollama container in an isolated Docker environment:
+
+```bash
+# Build and run the complete multi-service stack
+docker compose up --build -d
+
+# Check service logs
+docker compose logs -f orchestrator
+
+# Access the Web Operations Portal
+# http://localhost:8000
+```
+
+---
+
+## Continuous Integration (CI/CD)
+
+The repository includes a production-grade [GitHub Actions Workflow](.github/workflows/ci.yml) that automatically executes on every push and PR:
+1. **Dependency Resolution**: Cached environment setup via `astral-sh/setup-uv`.
+2. **Pytest Suite**: Runs all 45 unit and integration tests across parsers, rules, vector retrieval, and state transitions.
+3. **Safety Benchmark Evals**: Validates the 100% Zero False-Negative rate on life-safety rules.
+4. **Compiled Architecture Verification**: Programmatically compiles the LangGraph state machine.
 
 ---
 

@@ -1,0 +1,13 @@
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.chromadb
+.checkpoints.db
+*.db
+reports/
+.git
+.gitignore
+.env

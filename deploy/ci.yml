@@ -1,0 +1,40 @@
+name: CI / Test Suite & Safety Evals
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+
+jobs:
+  test:
+    name: Run Unit Tests & Safety Evals Benchmark
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install Dependencies
+        run: uv sync --frozen
+
+      - name: Run Pytest Suite (45 Tests)
+        run: uv run pytest -v
+
+      - name: Run Automated Safety Evals Benchmark (LLM-as-a-Judge)
+        run: uv run safety-graph-orchestrator evaluate
+
+      - name: Verify Compiled LangGraph Architecture
+        run: uv run safety-graph-orchestrator graph

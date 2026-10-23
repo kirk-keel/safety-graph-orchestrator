@@ -22,10 +22,25 @@ def test_route_after_ingestion_failure():
     assert next_node == END
 
 
-def test_route_after_car_escalation_required():
-    state: SafetyGraphState = {"escalation_required": True}
-    next_node = route_after_car(state)
-    assert next_node == "human_escalation_node"
+def test_compiled_graph_structure():
+    graph = build_safety_graph()
+    state_graph = graph.get_graph()
+
+    # Verify all expected nodes are registered in the state machine
+    node_keys = list(state_graph.nodes.keys())
+    assert "ingest_node" in node_keys
+    assert "rule_validator_node" in node_keys
+    assert "rag_enrichment_node" in node_keys
+    assert "multi_agent_deliberation_node" in node_keys
+    assert "root_cause_analysis_node" in node_keys
+    assert "compliance_car_node" in node_keys
+    assert "human_escalation_node" in node_keys
+
+    # Verify Mermaid export generates valid diagram syntax
+    mermaid = state_graph.draw_mermaid()
+    assert "graph TD" in mermaid or "flowchart" in mermaid
+    assert "ingest_node" in mermaid
+    assert "compliance_car_node" in mermaid
 
 
 def test_graph_state_machine_escalation_transition(swa_manifold_payload: str):

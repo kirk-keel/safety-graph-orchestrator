@@ -338,6 +338,38 @@ def serve(
     uvicorn.run("safety_graph_orchestrator.server.app:app", host=host, port=port, reload=reload)
 
 
+@app.command(name="graph")
+def export_graph_schema(
+    output_file: Optional[Path] = typer.Option(None, "--output", "-o", help="Optional path to save graph schema (.mmd or .txt)"),
+    as_ascii: bool = typer.Option(False, "--ascii", help="Display ASCII tree representation in terminal"),
+):
+    """Inspect and export the compiled LangGraph state machine architecture."""
+    graph = build_safety_graph()
+    state_graph = graph.get_graph()
+
+    if as_ascii:
+        try:
+            ascii_art = state_graph.draw_ascii()
+            console.print(f"[bold cyan]Compiled LangGraph State Machine (ASCII):[/bold cyan]\n")
+            console.print(ascii_art)
+        except Exception:
+            mermaid_str = state_graph.draw_mermaid()
+            console.print(mermaid_str)
+        return
+
+    mermaid_str = state_graph.draw_mermaid()
+    console.print(Panel(
+        f"[bold cyan]Compiled LangGraph State Machine Architecture (Mermaid)[/bold cyan]\n"
+        f"Nodes: {len(state_graph.nodes)} | Edges: {len(state_graph.edges)}",
+        border_style="cyan",
+    ))
+    console.print(f"```mermaid\n{mermaid_str}\n```")
+
+    if output_file:
+        output_file.write_text(mermaid_str, encoding="utf-8")
+        console.print(f"[bold green]Graph schema saved to:[/bold green] {output_file.resolve()}")
+
+
 @app.command()
 def demo():
     """Run an automated end-to-end demonstration on a Stop Work Authority incident."""
