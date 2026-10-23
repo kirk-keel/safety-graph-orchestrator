@@ -6,12 +6,15 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.tree import Tree
 
+from safety_graph_orchestrator.compliance.exporter import ReportExporter
 from safety_graph_orchestrator.core.models import (
+    AuditStatus,
     InputType,
     SeverityLevel,
 )
 from safety_graph_orchestrator.graph.builder import (
     build_safety_graph,
+    review_escalated_audit,
     run_safety_audit,
 )
 from safety_graph_orchestrator.retrieval.vector_store import SOPVectorStore
@@ -37,6 +40,7 @@ def audit(
     file_path: Path = typer.Argument(..., help="Path to DDR, SWA, or JSA JSON/text file to audit"),
     doc_type: str = typer.Option("AUTO", "--type", "-t", help="Document type: DDR, SWA, JSA, or AUTO"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Display full execution audit log"),
+    export_path: Optional[Path] = typer.Option(None, "--export", "-e", help="Optional path to export audit report (HTML)"),
 ):
     """Run full LangGraph state machine audit on an operational report."""
     if not file_path.exists():
@@ -52,10 +56,16 @@ def audit(
         border_style="cyan",
     ))
 
-    with console.status("[bold green]Executing LangGraph multi-agent pipeline (Ingestion -> Rules -> RAG -> 5 Whys RCA -> CAR)..."):
+    with console.status("[bold green]Executing LangGraph multi-agent pipeline (Ingestion -> Rules -> RAG -> Deliberation -> 5 Whys RCA -> CAR)..."):
         final_state = run_safety_audit(raw_input=raw_text, input_type=typed_doc_type)
 
     _render_audit_results(final_state, verbose)
+
+    if export_path:
+        car = final_state.get("car_report")
+        if car:
+            out_file = ReportExporter.export_html(car, export_path)
+            console.print(f"[bold green]Report exported successfully:[/bold green] {out_file.resolve()}")
 
 
 @app.command()
@@ -104,6 +114,92 @@ def sops(query: str = typer.Argument(..., help="Search query for company SOPs an
             f"{doc.relevance_score:.2f}",
         )
     console.print(table)
+
+
+@app.command()
+def signoff(
+    thread_id: str = typer.Argument(..., help="Thread ID of the escalated safety audit"),
+    approve: bool = typer.Option(True, "--approve/--reject", help="Approve or reject the CAR remediation"),
+    reviewer: str = typer.Option("HSE Director", "--reviewer", "-r", help="Name and title of the authorized reviewer"),
+    notes: str = typer.Option("Reviewed root cause and validated CAPA containment actions.", "--notes", "-n", help="Audit review notes"),
+):
+    """Human-in-the-Loop review and resolution gate for an escalated audit thread."""
+    console.print(Panel.fit(
+        f"[bold cyan]Human Safety Director Review Gate[/bold cyan]\n"
+        f"Thread ID: [yellow]{thread_id}[/yellow] | Decision: [{'bold green' if approve else 'bold red'}]{'APPROVE' if approve else 'REJECT'}[/]\n"
+        f"Reviewer: [white]{reviewer}[/white] | Notes: [dim]{notes}[/dim]",
+        border_style="magenta",
+    ))
+
+    try:
+        updated_state = review_escalated_audit(
+            thread_id=thread_id,
+            approved=approve,
+            reviewer_name=reviewer,
+            comments=notes,
+        )
+        status = updated_state.get("status")
+        console.print(f"[bold green]Successfully recorded human sign-off.[/bold green] Thread status updated to: [bold]{status}[/bold]")
+        _render_audit_results(updated_state, verbose=False)
+    except Exception as e:
+        console.print(f"[bold red]Failed to update thread state:[/bold red] {e}")
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def threads(
+    db_path: Path = typer.Option(Path(".checkpoints.db"), "--db", help="Path to SQLite checkpoints database"),
+):
+    """List persistent audit threads stored in the SQLite checkpointer database."""
+    if not db_path.exists():
+        console.print(f"[yellow]No checkpoints database found at {db_path}[/yellow]")
+        return
+
+    import sqlite3
+    conn = sqlite3.connect(str(db_path))
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT DISTINCT thread_id FROM checkpoints ORDER BY checkpoint_id DESC LIMIT 25")
+        rows = cursor.fetchall()
+    except Exception as e:
+        console.print(f"[bold red]Error reading checkpoints database:[/bold red] {e}")
+        return
+
+    if not rows:
+        console.print("[yellow]No audit threads found in database.[/yellow]")
+        return
+
+    table = Table(title=f"Persisted Audit Threads ({len(rows)} found in {db_path.name})", border_style="cyan")
+    table.add_column("Thread ID", style="bold cyan")
+    table.add_column("Persistence Mode", style="green")
+
+    for (t_id,) in rows:
+        table.add_row(t_id, "SQLite Durable Checkpoint")
+    console.print(table)
+
+
+@app.command()
+def export(
+    thread_id: str = typer.Argument(..., help="Thread ID of the persisted audit"),
+    output_file: Path = typer.Option(Path("reports/CAR_report.html"), "--output", "-o", help="Destination file path (.html)"),
+):
+    """Export a formal HTML Corrective Action Report from a persisted SQLite thread."""
+    graph = build_safety_graph()
+    config = {"configurable": {"thread_id": thread_id}}
+    state = graph.get_state(config)
+
+    if not state or not state.values or "car_report" not in state.values:
+        console.print(f"[bold red]No CAR found for thread ID:[/bold red] {thread_id}")
+        raise typer.Exit(code=1)
+
+    car = state.values["car_report"]
+    exported = ReportExporter.export_html(car, output_file)
+    console.print(Panel(
+        f"[bold green]Report Exported Successfully[/bold green]\n"
+        f"File: [cyan]{exported.resolve()}[/cyan]\n"
+        f"CAR: [bold]{car.car_number}[/bold] | Severity: [yellow]{car.overall_severity.value}[/yellow] | Status: {car.audit_status.value}",
+        border_style="green",
+    ))
 
 
 @app.command()
@@ -168,9 +264,28 @@ def _render_audit_results(state: dict, verbose: bool):
             sop_table.add_row(f"{s.doc_id}: {s.title}", s.standard_reference, f"{s.relevance_score:.2f}")
         console.print(sop_table)
 
+    # Multi-Agent Deliberation Perspectives
+    deliberations = state.get("agent_deliberations", [])
+    if deliberations:
+        d_table = Table(title=f"4. Multi-Agent Deliberation Committee ({len(deliberations)} Domain Agents)", border_style="cyan")
+        d_table.add_column("Agent Specialty", style="bold cyan", width=22)
+        d_table.add_column("Causal Assessment", style="white")
+        d_table.add_column("Identified Vulnerabilities", style="yellow")
+        d_table.add_column("Recommended Focus", style="green")
+
+        for d in deliberations:
+            vulns = "\n".join([f"• {v}" for v in d.identified_vulnerabilities])
+            d_table.add_row(
+                d.agent_role,
+                d.causal_assessment,
+                vulns,
+                d.recommended_focus,
+            )
+        console.print(d_table)
+
     # 5 Whys RCA Tree
     if rca and rca.five_whys:
-        rca_tree = Tree(f"[bold magenta]4. 5 Whys Root Cause Analysis[/bold magenta] (Primary: [yellow]{rca.primary_category.value}[/yellow])")
+        rca_tree = Tree(f"[bold magenta]5. Arbiter Consensus & 5 Whys Root Cause Analysis[/bold magenta] (Primary: [yellow]{rca.primary_category.value}[/yellow])")
         rca_tree.add(f"[bold red]Direct Physical Cause:[/bold red] {rca.direct_cause}")
 
         whys_node = rca_tree.add("[bold cyan]Causal Chain (5 Whys Interrogation):[/bold cyan]")

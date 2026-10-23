@@ -11,6 +11,12 @@ from safety_graph_orchestrator.core.models import (
 )
 from safety_graph_orchestrator.core.state import SafetyGraphState
 from safety_graph_orchestrator.parsers.detector import UnifiedIngestionPipeline
+from safety_graph_orchestrator.rca.deliberation import (
+    EquipmentReliabilityAgent,
+    OperationsSafetyAgent,
+    RegulatoryComplianceAgent,
+    SafetyArbiter,
+)
 from safety_graph_orchestrator.rca.five_whys import FiveWhysEngine
 from safety_graph_orchestrator.retrieval.vector_store import SOPVectorStore
 from safety_graph_orchestrator.rules.engine import SafetyRuleEngine
@@ -23,6 +29,12 @@ _rule_engine = SafetyRuleEngine()
 _vector_store = SOPVectorStore()
 _rca_engine = FiveWhysEngine()
 _car_generator = CARGenerator()
+
+# Specialized multi-agent committee singletons
+_ops_agent = OperationsSafetyAgent()
+_reg_agent = RegulatoryComplianceAgent()
+_equip_agent = EquipmentReliabilityAgent()
+_arbiter = SafetyArbiter(five_whys_engine=_rca_engine)
 
 
 def ingest_node(state: SafetyGraphState) -> Dict[str, Any]:
@@ -114,23 +126,56 @@ def rag_enrichment_node(state: SafetyGraphState) -> Dict[str, Any]:
     }
 
 
-def root_cause_analysis_node(state: SafetyGraphState) -> Dict[str, Any]:
-    """Executes 5 Whys Root Cause Analysis using local Ollama model."""
+def multi_agent_deliberation_node(state: SafetyGraphState) -> Dict[str, Any]:
+    """Orchestrates multi-agent debate across Operations, Regulatory, and Reliability perspectives."""
     unified_data = state.get("unified_data")
     violations = state.get("rule_violations", [])
     sops = state.get("retrieved_sops", [])
 
     if not unified_data:
+        return {"errors": ["Cannot execute multi-agent deliberation without parsed data."]}
+
+    # Execute specialized domain evaluations
+    ops_perspective = _ops_agent.evaluate(unified_data, violations, sops)
+    reg_perspective = _reg_agent.evaluate(unified_data, violations, sops)
+    equip_perspective = _equip_agent.evaluate(unified_data, violations, sops)
+
+    deliberations = [ops_perspective, reg_perspective, equip_perspective]
+
+    log_entry = AuditLogEntry(
+        node_name="multi_agent_deliberation_node",
+        action="Domain Committee Cross-Examination",
+        details={
+            "agents_convened": [p.agent_role for p in deliberations],
+            "confidence_scores": {p.agent_role: p.confidence for p in deliberations},
+        },
+    )
+
+    return {
+        "agent_deliberations": deliberations,
+        "audit_log": [log_entry],
+    }
+
+
+def root_cause_analysis_node(state: SafetyGraphState) -> Dict[str, Any]:
+    """Safety Arbiter synthesizes multi-agent committee findings into consensus 5 Whys causal graph."""
+    unified_data = state.get("unified_data")
+    violations = state.get("rule_violations", [])
+    sops = state.get("retrieved_sops", [])
+    deliberations = state.get("agent_deliberations", [])
+
+    if not unified_data:
         return {"errors": ["Cannot perform RCA without unified safety data."]}
 
-    rca_result = _rca_engine.analyze(unified_data, violations, sops)
+    rca_result = _arbiter.synthesize(unified_data, violations, sops, deliberations)
 
     log_entry = AuditLogEntry(
         node_name="root_cause_analysis_node",
-        action="5 Whys Root Cause Analysis",
+        action="5 Whys Arbiter Consensus Synthesis",
         details={
             "primary_category": rca_result.primary_category.value,
             "five_whys_depth": len(rca_result.five_whys),
+            "deliberation_inputs": len(rca_result.deliberation_perspectives),
             "root_cause_statement": rca_result.root_cause_statement[:100],
         },
     )

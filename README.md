@@ -1,7 +1,8 @@
 # Safety Graph Orchestrator 🛡️⚡
 
-[![CI / Test Suite](https://img.shields.io/badge/pytest-32%20passed-brightgreen.svg)](#testing)
+[![CI / Test Suite](https://img.shields.io/badge/pytest-36%20passed-brightgreen.svg)](#testing)
 [![LangGraph](https://img.shields.io/badge/LangGraph-1.2+-blue.svg)](https://github.com/langchain-ai/langgraph)
+[![SQLite Checkpointing](https://img.shields.io/badge/Checkpoints-Durable%20SQLite-indigo.svg)](#human-in-the-loop-hitl--checkpoint-persistence)
 [![ChromaDB](https://img.shields.io/badge/ChromaDB-1.5+-red.svg)](https://www.trychroma.com/)
 [![Local Ollama](https://img.shields.io/badge/LLM-Local%20Ollama%20(Llama3.2)-orange.svg)](https://ollama.ai)
 [![Compliance](https://img.shields.io/badge/Standards-OSHA%20%7C%20API%20RP%2054%20%7C%20ISO%2045001-purple.svg)](#regulatory-frameworks)
@@ -12,9 +13,11 @@ An enterprise-grade, stateful multi-agent workflow orchestration system built wi
 3. **Job Safety Analysis (JSA / JHA) Audit Verification**
 4. **Deterministic Hard Safety Rule Validation (Zero-Hallucination Gating)**
 5. **Vector Retrieval (ChromaDB) over Company SOPs and OSHA/API Standards**
-6. **5 Whys Root Cause Analysis (RCA) via Local Ollama Models**
-7. **Corrective & Preventive Action Report (CAR / CAPA) Synthesis**
-8. **Human-in-the-Loop (HITL) Safety Director Escalation Routing**
+6. **Multi-Agent Deliberation Committee (Operations, Regulatory Compliance, Forensic Reliability)**
+7. **5 Whys Root Cause Analysis (RCA) via Local Ollama Models & Safety Arbiter**
+8. **Corrective & Preventive Action Report (CAR / CAPA) Synthesis (ISO 45001 / API Q2)**
+9. **Durable SQLite State Checkpointing & Human-in-the-Loop (HITL) Sign-off Gates**
+10. **Executive HTML / PDF Audit Report Generation**
 
 ---
 
@@ -32,7 +35,9 @@ flowchart TD
     
     RuleNode --> RAGNode["rag_enrichment_node<br/><i>(ChromaDB SOP & OSHA Retrieval)</i>"]
     
-    RAGNode --> RCANode["root_cause_analysis_node<br/><i>(5 Whys Agent via Local Ollama)</i>"]
+    RAGNode --> DelibNode["multi_agent_deliberation_node<br/><i>(Operations vs Compliance vs Reliability)</i>"]
+    
+    DelibNode --> RCANode["root_cause_analysis_node<br/><i>(Safety Arbiter & 5 Whys Synthesis)</i>"]
     
     RCANode --> CARNode["compliance_car_node<br/><i>(CAPA Synthesis - ISO 45001 / API Q2)</i>"]
     
@@ -48,7 +53,7 @@ flowchart TD
     classDef terminal fill:#0f172a,stroke:#64748b,stroke-width:2px,color:#cbd5e1;
     classDef alert fill:#450a0a,stroke:#f87171,stroke-width:2px,color:#fca5a5;
 
-    class IngestNode,RuleNode,RAGNode,RCANode,CARNode primary;
+    class IngestNode,RuleNode,RAGNode,DelibNode,RCANode,CARNode primary;
     class RouteIngest,RouteCAR decision;
     class HumanNode alert;
     class Start,EndSuccess,EndFail,EndEscalated terminal;

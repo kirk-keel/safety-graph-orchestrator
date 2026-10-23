@@ -2,6 +2,7 @@ from operator import add
 from typing import Annotated, Any, Dict, List, Optional, TypedDict
 
 from safety_graph_orchestrator.core.models import (
+    AgentPerspective,
     AuditLogEntry,
     AuditStatus,
     CorrectiveActionReport,
@@ -33,7 +34,10 @@ class SafetyGraphState(TypedDict, total=False):
     # RAG Context
     retrieved_sops: Annotated[List[RetrievedSOP], add]
 
-    # Root Cause Analysis
+    # Multi-Agent Deliberation Committee
+    agent_deliberations: Annotated[List[AgentPerspective], add]
+
+    # Root Cause Analysis (Arbiter consensus)
     rca_result: Optional[RootCauseAnalysisResult]
 
     # Final Compliance Output

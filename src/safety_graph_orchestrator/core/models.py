@@ -158,6 +158,16 @@ class RetrievedSOP(BaseModel):
     category: str
 
 
+class AgentPerspective(BaseModel):
+    """Structured perspective submitted by a specialized domain agent during deliberation."""
+    agent_role: str = Field(description="e.g. Drilling Operations, OSHA Compliance, Equipment Reliability")
+    key_findings: List[str] = Field(default_factory=list)
+    causal_assessment: str = Field(description="Primary contributing factor from this agent's specialty")
+    identified_vulnerabilities: List[str] = Field(default_factory=list)
+    recommended_focus: str = Field(description="Key focus area for CAPA containment")
+    confidence: float = Field(default=0.9, ge=0.0, le=1.0)
+
+
 class FiveWhysStep(BaseModel):
     level: int = Field(ge=1, le=5)
     question: str
@@ -170,6 +180,7 @@ class RootCauseAnalysisResult(BaseModel):
     incident_summary: str
     direct_cause: str
     contributing_factors: List[str] = Field(default_factory=list)
+    deliberation_perspectives: List[AgentPerspective] = Field(default_factory=list)
     five_whys: List[FiveWhysStep] = Field(default_factory=list)
     root_cause_statement: str
     primary_category: RootCauseCategory

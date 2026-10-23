@@ -47,6 +47,7 @@ def test_graph_state_machine_escalation_transition(swa_manifold_payload: str):
     assert "ingest_node" in visited_nodes
     assert "rule_validator_node" in visited_nodes
     assert "rag_enrichment_node" in visited_nodes
+    assert "multi_agent_deliberation_node" in visited_nodes
     assert "root_cause_analysis_node" in visited_nodes
     assert "compliance_car_node" in visited_nodes
     assert "human_escalation_node" in visited_nodes

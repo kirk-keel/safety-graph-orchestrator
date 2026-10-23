@@ -10,8 +10,11 @@ wheels/
 # Virtual environments
 .venv
 
-# Local persistent vector store
+# Local persistent vector store & checkpoints
 .chromadb/
+.checkpoints.db
+*.db
+reports/
 
 # Environment files
 .env
